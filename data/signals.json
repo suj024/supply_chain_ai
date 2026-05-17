@@ -1,0 +1,34 @@
+{
+  "weather": {
+    "Hyderabad": { "event": "Heavy Rainfall", "impact": "demand_drop", "factor": 0.85 },
+    "Mumbai":    { "event": "Monsoon Season", "impact": "demand_drop", "factor": 0.80 },
+    "Delhi":     { "event": "Dense Fog",      "impact": "demand_drop", "factor": 0.90 },
+    "Bangalore": { "event": "Clear Weather",  "impact": "normal",      "factor": 1.00 },
+    "Chennai":   { "event": "Cyclone Alert",  "impact": "demand_drop", "factor": 0.75 },
+    "Pune":      { "event": "Clear Weather",  "impact": "normal",      "factor": 1.00 },
+    "Kolkata":   { "event": "Flood Warning",  "impact": "demand_drop", "factor": 0.70 },
+    "Ahmedabad": { "event": "Heat Wave",      "impact": "demand_rise", "factor": 1.15 }
+  },
+  "festivals": {
+    "Hyderabad": { "event": "Bathukamma Festival", "impact": "demand_rise", "factor": 1.30 },
+    "Mumbai":    { "event": "Ganesh Chaturthi",    "impact": "demand_rise", "factor": 1.40 },
+    "Delhi":     { "event": "Diwali",              "impact": "demand_rise", "factor": 1.50 },
+    "Bangalore": { "event": "Dasara",              "impact": "demand_rise", "factor": 1.25 },
+    "Chennai":   { "event": "Pongal",              "impact": "demand_rise", "factor": 1.35 },
+    "Pune":      { "event": "Diwali",              "impact": "demand_rise", "factor": 1.45 },
+    "Kolkata":   { "event": "Durga Puja",          "impact": "demand_rise", "factor": 1.60 },
+    "Ahmedabad": { "event": "Navratri",            "impact": "demand_rise", "factor": 1.55 }
+  },
+  "competitors": {
+    "Laptop":     { "competitor": "Dell India",      "promo": "10% off sale",       "impact": "demand_drop", "factor": 0.90 },
+    "Mobile":     { "competitor": "Samsung India",   "promo": "Exchange offer",     "impact": "demand_drop", "factor": 0.85 },
+    "Tablet":     { "competitor": "Apple India",     "promo": "EMI 0% offer",       "impact": "demand_drop", "factor": 0.88 },
+    "Headphones": { "competitor": "Boat Audio",      "promo": "Buy 1 Get 1",        "impact": "demand_drop", "factor": 0.80 },
+    "Smartwatch": { "competitor": "Noise Watches",   "promo": "Flat 20% off",       "impact": "demand_drop", "factor": 0.82 },
+    "Keyboard":   { "competitor": "Logitech India",  "promo": "Combo deal",         "impact": "demand_drop", "factor": 0.87 },
+    "Monitor":    { "competitor": "LG Electronics",  "promo": "Cashback offer",     "impact": "demand_drop", "factor": 0.85 },
+    "Mouse":      { "competitor": "HP Accessories",  "promo": "Bundle discount",    "impact": "demand_drop", "factor": 0.88 },
+    "Printer":    { "competitor": "Canon India",     "promo": "Free ink offer",     "impact": "demand_drop", "factor": 0.83 },
+    "Speaker":    { "competitor": "JBL India",       "promo": "Weekend flash sale", "impact": "demand_drop", "factor": 0.86 }
+  }
+}
