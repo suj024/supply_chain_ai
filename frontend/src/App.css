@@ -1,0 +1,246 @@
+/* ── Layout ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; }
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  background: #1e293b;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  position: fixed;
+  height: 100vh;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+.sidebar-logo h1 { font-size: 1rem; font-weight: 700; color: #e2e8f0; }
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+.nav-item:hover { background: #334155; color: white; }
+.nav-item.active { background: #4f46e5; color: white; }
+.nav-icon { font-size: 1.1rem; }
+
+.sidebar-footer { font-size: 11px; color: #475569; text-align: center; padding-top: 1rem; }
+
+/* ── Main ── */
+.main-content { margin-left: 220px; flex: 1; padding: 2rem; }
+
+.page { max-width: 960px; }
+.page-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; }
+
+/* ── Stat cards ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.stat-label { font-size: 13px; color: #64748b; margin-bottom: 6px; }
+.stat-value { font-size: 2rem; font-weight: 700; }
+
+/* ── Info box ── */
+.info-box {
+  background: #eef2ff;
+  border-left: 4px solid #4f46e5;
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.25rem;
+}
+.info-box h3 { font-size: 15px; margin-bottom: 6px; color: #3730a3; }
+.info-box p  { font-size: 14px; color: #4338ca; }
+
+/* ── Buttons ── */
+.btn-primary {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover { background: #4338ca; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Form row (select + input + button in a line) ── */
+.form-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Select & Number inputs ── */
+.select-input,
+.number-input {
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+  color: #1e293b;
+  transition: border-color 0.2s;
+}
+.select-input:focus,
+.number-input:focus { border-color: #4f46e5; }
+.number-input { width: 160px; }
+
+/* ── Search input ── */
+.search-input {
+  width: 100%;
+  max-width: 320px;
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 1.25rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: #4f46e5; }
+
+/* ── Result card (shown after API response) ── */
+.result-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin-top: 0.5rem;
+}
+.result-card h3 {
+  font-size: 16px;
+  color: #1e293b;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+/* ── Sub label (e.g. "7-day forecast for P1 in Hyderabad") ── */
+.sub-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+/* ── Forecast ── */
+.forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+.forecast-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  text-align: center;
+}
+.forecast-day   { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+.forecast-value { font-size: 1.6rem; font-weight: 700; color: #4f46e5; margin-bottom: 8px; }
+.forecast-bar   { background: #e2e8f0; border-radius: 4px; height: 6px; }
+.forecast-bar-fill { background: #4f46e5; height: 6px; border-radius: 4px; transition: width 0.5s; }
+
+/* ── Table ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.data-table th {
+  background: #f8fafc;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+}
+.data-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+.data-table tr:last-child td { border-bottom: none; }
+
+/* ── Badges ── */
+.badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-success { background: #dcfce7; color: #166534; }
+.badge-danger  { background: #fee2e2; color: #991b1b; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-neutral { background: #f1f5f9; color: #475569; }
+
+/* ── Supplier / general card grid ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+.supplier-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  text-align: center;
+}
+.supplier-card h3 { font-size: 15px; margin: 10px 0 4px; }
+.supplier-card p  { font-size: 13px; color: #64748b; margin-bottom: 4px; }
+.supplier-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 auto;
+}
+
+/* ── Error text ── */
+.error-text {
+  color: #dc2626;
+  font-size: 14px;
+  margin-top: 1rem;
+  padding: 10px 14px;
+  background: #fee2e2;
+  border-radius: 8px;
+}
