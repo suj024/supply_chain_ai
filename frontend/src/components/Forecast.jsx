@@ -16,7 +16,7 @@ export default function Forecast() {
 
   const getForecast = () => {
     setLoading(true); setForecasts([]); setSummary(null);
-    fetch(`http://127.0.0.1:8000/forecast?product_id=${product}&location=${location}&days=${days}`)
+    fetch(`https://web-production-0efc7.up.railway.app/forecast?product_id=${product}&location=${location}&days=${days}`)
       .then(r => r.json())
       .then(data => {
         if (data.error) { alert('Error: ' + data.error); setLoading(false); return; }

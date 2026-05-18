@@ -41,7 +41,7 @@ export default function Procurement() {
   const [editReason, setEditReason]     = useState('');
 
   const fetchOrders = () => {
-    fetch('http://localhost:8000/orders/list')
+    fetch('https://web-production-0efc7.up.railway.app/orders/list')
       .then((r) => r.json())
       .then(setOrders)
       .catch(() => setOrders([]));
@@ -55,7 +55,7 @@ export default function Procurement() {
       return;
     }
     setLoading(true);
-    fetch('http://localhost:8000/orders/create', {
+    fetch('https://web-production-0efc7.up.railway.app/orders/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -78,14 +78,14 @@ export default function Procurement() {
   };
 
   const updateStatus = (orderId, action) => {
-    fetch(`http://localhost:8000/orders/${orderId}/${action}`, { method: 'PUT' })
+    fetch(`https://web-production-0efc7.up.railway.app/orders/${orderId}/${action}`, { method: 'PUT' })
       .then((r) => r.json())
       .then(() => fetchOrders());
   };
 
   const deleteOrder = (orderId) => {
   if (window.confirm('Are you sure you want to delete this order?')) {
-    fetch(`http://localhost:8000/orders/${orderId}/delete`, { method: 'DELETE' })
+    fetch(`https://web-production-0efc7.up.railway.app/orders/${orderId}/delete`, { method: 'DELETE' })
       .then((r) => r.json())
       .then(() => {
         setMessage('🗑️ Order deleted!');
@@ -103,7 +103,7 @@ export default function Procurement() {
   };
 
   const saveEdit = (order) => {
-    fetch(`http://localhost:8000/orders/${order.id}/edit`, {
+    fetch(`https://web-production-0efc7.up.railway.app/orders/${order.id}/edit`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
