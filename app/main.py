@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.auth import authenticate_user, create_access_token, get_current_user
 from app.external_signals import get_external_signals
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
 from app.database import SessionLocal, engine
 from app.forecast import forecast_demand
@@ -40,6 +40,28 @@ app.add_middleware(
 )
 
 
+# ─── Helpers ────────────────────────────────────────────────────────────────
+
+def get_next_order_id(db) -> str:
+    """
+    FIX: Use max existing number + 1 instead of count + 1.
+    Prevents duplicate IDs after deletions.
+    """
+    orders = db.query(PurchaseOrder).all()
+    if not orders:
+        return "PO-001"
+    numbers = []
+    for o in orders:
+        try:
+            numbers.append(int(o.id.split("-")[1]))
+        except (IndexError, ValueError):
+            pass
+    next_num = max(numbers) + 1 if numbers else 1
+    return f"PO-{next_num:03d}"
+
+
+# ─── Auth ────────────────────────────────────────────────────────────────────
+
 @app.get("/")
 def home():
     return {"message": "Supply Chain AI Running 🚀"}
@@ -70,18 +92,19 @@ def get_me(current_user: dict = Depends(get_current_user)):
     }
 
 
+# ─── Forecast / Inventory / Replenishment / Risk / Promotion ─────────────────
+
 @app.get("/forecast")
 def forecast_api(product_id: str, location: str, days: int = 7):
     try:
         result           = forecast_demand(product_id, location, days)
         forecast_values  = [r["value"] for r in result]
-        forecast_with_ci = result
         return {
             "product_id":  product_id,
             "location":    location,
             "days":        days,
             "forecast":    forecast_values,
-            "forecast_ci": forecast_with_ci,
+            "forecast_ci": result,
             "summary": {
                 "avg":   round(sum(forecast_values) / len(forecast_values), 2) if forecast_values else 0,
                 "peak":  round(max(forecast_values), 2) if forecast_values else 0,
@@ -125,6 +148,8 @@ def promotion_api(product_id: str, location: str, lift: int):
         return {"error": str(e)}
 
 
+# ─── Purchase Orders ──────────────────────────────────────────────────────────
+
 class PurchaseOrderInput(BaseModel):
     product_id:     str
     location:       str
@@ -136,103 +161,116 @@ class PurchaseOrderInput(BaseModel):
 @app.post("/orders/create")
 def create_order(order: PurchaseOrderInput):
     db = SessionLocal()
-    count = db.query(PurchaseOrder).count()
-    new_order = PurchaseOrder(
-        id             = f"PO-{count+1:03d}",
-        product_id     = order.product_id,
-        location       = order.location,
-        quantity       = order.quantity,
-        suggested_date = order.suggested_date,
-        reason         = order.reason,
-        status         = "Pending",
-        created_at     = datetime.now().isoformat(),
-    )
-    db.add(new_order)
-    db.commit()
-    db.refresh(new_order)
-    db.close()
-    return new_order
+    try:
+        new_order = PurchaseOrder(
+            id             = get_next_order_id(db),   # FIX: safe ID generation
+            product_id     = order.product_id,
+            location       = order.location,
+            quantity       = order.quantity,
+            suggested_date = order.suggested_date,
+            reason         = order.reason,
+            status         = "Pending",
+            created_at     = datetime.now().isoformat(),
+        )
+        db.add(new_order)
+        db.commit()
+        db.refresh(new_order)
+        return new_order
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
 
 
 @app.get("/orders/list")
 def list_orders(status: Optional[str] = None):
     db = SessionLocal()
-    query = db.query(PurchaseOrder)
-    if status:
-        query = query.filter(PurchaseOrder.status == status)
-    orders = query.all()
-    db.close()
-    return orders
-
-
-@app.put("/orders/{order_id}/approve")
-def approve_order(order_id: str):
-    db = SessionLocal()
-    order = db.query(PurchaseOrder).filter(PurchaseOrder.id == order_id).first()
-    if not order:
+    try:
+        query = db.query(PurchaseOrder)
+        if status:
+            query = query.filter(PurchaseOrder.status == status)
+        return query.all()
+    finally:
         db.close()
-        return {"error": "Order not found"}
-    order.status      = "Approved"
-    order.approved_at = datetime.now().isoformat()
-    db.commit()
-    db.close()
-    return order
-
-
-@app.put("/orders/{order_id}/reject")
-def reject_order(order_id: str):
-    db = SessionLocal()
-    order = db.query(PurchaseOrder).filter(PurchaseOrder.id == order_id).first()
-    if not order:
-        db.close()
-        return {"error": "Order not found"}
-    order.status      = "Rejected"
-    order.rejected_at = datetime.now().isoformat()
-    db.commit()
-    db.close()
-    return order
-
-
-@app.put("/orders/{order_id}/edit")
-def edit_order(order_id: str, order: PurchaseOrderInput):
-    db = SessionLocal()
-    o = db.query(PurchaseOrder).filter(PurchaseOrder.id == order_id).first()
-    if not o:
-        db.close()
-        return {"error": "Order not found"}
-    o.product_id     = order.product_id
-    o.location       = order.location
-    o.quantity       = order.quantity
-    o.suggested_date = order.suggested_date
-    o.reason         = order.reason
-    db.commit()
-    db.close()
-    return o
-
-
-@app.delete("/orders/{order_id}/delete")
-def delete_order(order_id: str):
-    db = SessionLocal()
-    order = db.query(PurchaseOrder).filter(PurchaseOrder.id == order_id).first()
-    if not order:
-        db.close()
-        return {"error": "Order not found"}
-    db.delete(order)
-    db.commit()
-    db.close()
-    return {"message": f"Order {order_id} deleted successfully"}
 
 
 @app.get("/orders/summary")
 def orders_summary():
     db = SessionLocal()
-    total    = db.query(PurchaseOrder).count()
-    pending  = db.query(PurchaseOrder).filter(PurchaseOrder.status == "Pending").count()
-    approved = db.query(PurchaseOrder).filter(PurchaseOrder.status == "Approved").count()
-    rejected = db.query(PurchaseOrder).filter(PurchaseOrder.status == "Rejected").count()
-    db.close()
-    return {"total": total, "pending": pending, "approved": approved, "rejected": rejected}
+    try:
+        total    = db.query(PurchaseOrder).count()
+        pending  = db.query(PurchaseOrder).filter(PurchaseOrder.status == "Pending").count()
+        approved = db.query(PurchaseOrder).filter(PurchaseOrder.status == "Approved").count()
+        rejected = db.query(PurchaseOrder).filter(PurchaseOrder.status == "Rejected").count()
+        return {"total": total, "pending": pending, "approved": approved, "rejected": rejected}
+    finally:
+        db.close()
 
+
+@app.put("/orders/{order_id}/approve")
+def approve_order(order_id: str):
+    db = SessionLocal()
+    try:
+        order = db.query(PurchaseOrder).filter(PurchaseOrder.id == order_id).first()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")  # FIX: proper 404
+        order.status      = "Approved"
+        order.approved_at = datetime.now().isoformat()
+        db.commit()
+        return order
+    finally:
+        db.close()
+
+
+@app.put("/orders/{order_id}/reject")
+def reject_order(order_id: str):
+    db = SessionLocal()
+    try:
+        order = db.query(PurchaseOrder).filter(PurchaseOrder.id == order_id).first()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")  # FIX: proper 404
+        order.status      = "Rejected"
+        order.rejected_at = datetime.now().isoformat()
+        db.commit()
+        return order
+    finally:
+        db.close()
+
+
+@app.put("/orders/{order_id}/edit")
+def edit_order(order_id: str, order: PurchaseOrderInput):
+    db = SessionLocal()
+    try:
+        o = db.query(PurchaseOrder).filter(PurchaseOrder.id == order_id).first()
+        if not o:
+            raise HTTPException(status_code=404, detail="Order not found")  # FIX: proper 404
+        o.product_id     = order.product_id
+        o.location       = order.location
+        o.quantity       = order.quantity
+        o.suggested_date = order.suggested_date
+        o.reason         = order.reason
+        db.commit()
+        return o
+    finally:
+        db.close()
+
+
+@app.delete("/orders/{order_id}/delete")
+def delete_order(order_id: str):
+    db = SessionLocal()
+    try:
+        order = db.query(PurchaseOrder).filter(PurchaseOrder.id == order_id).first()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")  # FIX: proper 404
+        db.delete(order)
+        db.commit()
+        return {"message": f"Order {order_id} deleted successfully"}
+    finally:
+        db.close()
+
+
+# ─── Accuracy ─────────────────────────────────────────────────────────────────
 
 class ActualSalesInput(BaseModel):
     product_id: str
@@ -316,6 +354,8 @@ def clear_accuracy_log():
     return {"message": "Accuracy log cleared ✅"}
 
 
+# ─── Suppliers / Signals / Sales Data ────────────────────────────────────────
+
 @app.get("/suppliers")
 def get_suppliers():
     from app.risk import SUPPLIER_RELIABILITY
@@ -352,15 +392,18 @@ class SalesInput(BaseModel):
 @app.post("/add-data")
 def add_data(data: SalesInput):
     db = SessionLocal()
-    new_record = Sales(
-        product_id=data.product_id,
-        location=data.location,
-        sales=data.sales
-    )
-    db.add(new_record)
-    db.commit()
-    db.close()
-    return {"message": "Data added successfully ✅"}
+    try:
+        new_record = Sales(
+            product_id=data.product_id,
+            location=data.location,
+            sales=data.sales
+        )
+        db.add(new_record)
+        db.commit()
+        return {"message": "Data added successfully ✅"}
+    finally:
+        db.close()
+
 
 if __name__ == "__main__":
     import uvicorn
